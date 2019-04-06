@@ -375,7 +375,7 @@ class GraphConvolutionalMatrixCompletion(object):
                                additional_item_features: Optional[List[Dict[Any, np.ndarray]]] = None,
                                with_user_embedding: bool = True) -> np.ndarray:
         dataset = self.dataset.add_ratings(additional_rating_data)
-        dataset = dataset.add.item_features(additional_item_features)
+        dataset = dataset.add_item_features(additional_item_features)
 
         return self._predict(
             user_ids=user_ids,
@@ -416,18 +416,18 @@ class GraphConvolutionalMatrixCompletion(object):
         return predictions
 
     def predict_item_scores(self, item_ids: List, with_user_embedding: bool = True) -> pd.DataFrame:
-        user_ids = list(self.dataset.user_id_map.id2index.keys())
-        _test_users, _test_items = zip(*list(itertools.product(user_ids, item_ids)))
-        predicts = self.predict(user_ids=_test_users, item_ids=_test_items, with_user_embedding=with_user_embedding)
-        results = pd.DataFrame(dict(user=_test_users, item=_test_items, score=predicts))
+        user_ids = self.dataset.user_ids
+        users, items = zip(*list(itertools.product(user_ids, item_ids)))
+        predicts = self.predict(user_ids=users, item_ids=items, with_user_embedding=with_user_embedding)
+        results = pd.DataFrame(dict(user=users, item=items, score=predicts))
         results.sort_values('score', ascending=False, inplace=True)
         return results
 
     def _make_graph(self) -> GraphConvolutionalMatrixCompletionGraph:
         return GraphConvolutionalMatrixCompletionGraph(
-            n_rating=len(self.dataset.rating_id_map.id2index),
-            n_user=len(self.dataset.user_id_map.id2index) + 1,  # TODO
-            n_item=len(self.dataset.item_id_map.id2index) + 1,  # TODO
+            n_rating=self.dataset.n_rating,
+            n_user=self.dataset.n_user + 1,  # TODO
+            n_item=self.dataset.n_item + 1,  # TODO
             rating=self.dataset.rating(),
             normalization_type=self.normalization_type,
             encoder_hidden_size=self.encoder_hidden_size,
