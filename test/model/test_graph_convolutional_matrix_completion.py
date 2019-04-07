@@ -25,12 +25,12 @@ class GraphConvolutionalMatrixCompletionTest(unittest.TestCase):
         user_ids = adjacency_matrix.tocoo().row
         item_ids = adjacency_matrix.tocoo().col
         ratings = adjacency_matrix.tocoo().data
-        rating_data = GcmcDataset(user_ids, item_ids, ratings)
+        dataset = GcmcDataset(user_ids, item_ids, ratings)
         encoder_hidden_size = 100
         encoder_size = 100
         scope_name = 'GraphConvolutionalMatrixCompletionGraph'
         model = GraphConvolutionalMatrixCompletion(
-            rating_data=rating_data,
+            dataset=dataset,
             encoder_hidden_size=encoder_hidden_size,
             encoder_size=encoder_size,
             scope_name=scope_name,
@@ -57,12 +57,12 @@ class GraphConvolutionalMatrixCompletionTest(unittest.TestCase):
         item_ids = adjacency_matrix.tocoo().col
         ratings = adjacency_matrix.tocoo().data
         item_features = [{i: np.array([i]) for i in range(n_items)}]
-        rating_data = GcmcDataset(user_ids, item_ids, ratings, item_features=item_features)
+        dataset = GcmcDataset(user_ids, item_ids, ratings, item_features=item_features)
         encoder_hidden_size = 100
         encoder_size = 100
         scope_name = 'GraphConvolutionalMatrixCompletionGraph'
         model = GraphConvolutionalMatrixCompletion(
-            rating_data=rating_data,
+            dataset=dataset,
             encoder_hidden_size=encoder_hidden_size,
             encoder_size=encoder_size,
             scope_name=scope_name,

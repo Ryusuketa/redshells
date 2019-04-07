@@ -171,14 +171,14 @@ class GcmcGraphDataset(object):
         data['item'] = self._item.indices[idx]
         data['label'] = self._to_one_hot(self._rating.indices[idx])
         data['rating'] = self._rating.ids[idx]
-        data['user_information'] = self._user.feature_indices[idx]
-        data['item_information'] = self._item.feature_indices[idx]
+        data['user_feature_indices'] = self._user.feature_indices[idx]
+        data['item_feature_indices'] = self._item.feature_indices[idx]
         return data
 
     def to_indices(self, user_ids: List, item_ids: List) -> Tuple[np.ndarray, np.ndarray]:
         return self._user.to_indices(user_ids), self._item.to_indices(item_ids)
 
-    def to_information_indices(self, user_ids: List, item_ids: List) -> Tuple[np.ndarray, np.ndarray]:
+    def to_feature_indices(self, user_ids: List, item_ids: List) -> Tuple[np.ndarray, np.ndarray]:
         return self._user.to_feature_indices(user_ids), self._item.to_feature_indices(item_ids)
 
     def rating(self) -> np.ndarray:
@@ -200,11 +200,11 @@ class GcmcGraphDataset(object):
         return self._item.index_count
 
     @property
-    def user_information(self) -> List[np.ndarray]:
+    def user_features(self) -> List[np.ndarray]:
         return self._user.feature_matrix
 
     @property
-    def item_information(self) -> List[np.ndarray]:
+    def item_features(self) -> List[np.ndarray]:
         return self._item.feature_matrix
 
     @property
