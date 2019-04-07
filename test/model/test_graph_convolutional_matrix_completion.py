@@ -4,7 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from redshells.model import GraphConvolutionalMatrixCompletion
-from redshells.model.gcmc_dataset import GcmcRatingData
+from redshells.model.gcmc_dataset import GcmcDataset
 
 
 def _make_sparse_matrix(n, m, n_values):
@@ -25,7 +25,7 @@ class GraphConvolutionalMatrixCompletionTest(unittest.TestCase):
         user_ids = adjacency_matrix.tocoo().row
         item_ids = adjacency_matrix.tocoo().col
         ratings = adjacency_matrix.tocoo().data
-        rating_data = GcmcRatingData(user_ids, item_ids, ratings)
+        rating_data = GcmcDataset(user_ids, item_ids, ratings)
         encoder_hidden_size = 100
         encoder_size = 100
         scope_name = 'GraphConvolutionalMatrixCompletionGraph'
@@ -56,7 +56,8 @@ class GraphConvolutionalMatrixCompletionTest(unittest.TestCase):
         user_ids = adjacency_matrix.tocoo().row
         item_ids = adjacency_matrix.tocoo().col
         ratings = adjacency_matrix.tocoo().data
-        rating_data = GcmcRatingData(user_ids, item_ids, ratings)
+        item_features = [{i: np.array([i]) for i in range(n_items)}]
+        rating_data = GcmcDataset(user_ids, item_ids, ratings, item_features=item_features)
         encoder_hidden_size = 100
         encoder_size = 100
         scope_name = 'GraphConvolutionalMatrixCompletionGraph'
@@ -73,10 +74,13 @@ class GraphConvolutionalMatrixCompletionTest(unittest.TestCase):
             normalization_type='symmetric')
         model.fit()
 
-        user_ids = [1, 2]
-        item_ids = [11, 236]
-        results = model.predict(user_ids, item_ids)
-        print(results)
+        user_ids = [90, 62]
+        item_ids = [11, 236]  # 236 is new items
+        additional_dataset = GcmcDataset(np.array(user_ids), np.array(item_ids), np.array([1, 2]), item_features=[{236: np.array([236])}])
+        results = model.predict_with_new_items(user_ids, item_ids, additional_dataset=additional_dataset)
+        self.assertEqual(2, len(results))
+        self.assertIsNotNone(results[0])
+        self.assertIsNotNone(results[1])
 
 
 if __name__ == '__main__':
