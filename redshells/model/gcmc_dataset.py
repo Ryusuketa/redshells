@@ -130,10 +130,10 @@ class GcmcIdMap(object):
 
 
 class GcmcGraphDataset(object):
-    def __init__(self, rating_data: GcmcDataset, test_size: float, min_user_click_count: int = 0, max_user_click_count: int = sys.maxsize) -> None:
-        self._user = GcmcIdMap(rating_data.user_ids, features=rating_data.user_features, min_count=min_user_click_count, max_count=max_user_click_count)
-        self._item = GcmcIdMap(rating_data.item_ids, features=rating_data.item_features)
-        self._rating = GcmcIdMap(rating_data.ratings, use_default=False)
+    def __init__(self, dataset: GcmcDataset, test_size: float, min_user_click_count: int = 0, max_user_click_count: int = sys.maxsize) -> None:
+        self._user = GcmcIdMap(dataset.user_ids, features=dataset.user_features, min_count=min_user_click_count, max_count=max_user_click_count)
+        self._item = GcmcIdMap(dataset.item_ids, features=dataset.item_features)
+        self._rating = GcmcIdMap(dataset.ratings, use_default=False)
         self._train_indices = np.random.uniform(0., 1., size=len(self._user.ids)) > test_size
 
     def _train_adjacency_matrix(self):

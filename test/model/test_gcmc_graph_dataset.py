@@ -26,7 +26,7 @@ class TestGcmcGraphDataset(unittest.TestCase):
         ratings = adjacency_matrix.tocoo().data
         item_features = [{i: np.array([i]) for i in range(n_items)}]
         rating_data = GcmcDataset(user_ids, item_ids, ratings, item_features=item_features)
-        dataset = GcmcGraphDataset(rating_data=rating_data, test_size=0.2)
+        dataset = GcmcGraphDataset(dataset=rating_data, test_size=0.2)
         self.assertEqual((n_items + 1, 1), dataset.item_features[0].shape)  # because of default index.
 
 

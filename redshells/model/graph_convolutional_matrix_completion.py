@@ -214,11 +214,10 @@ class GraphConvolutionalMatrixCompletionGraph(object):
 
 class GraphConvolutionalMatrixCompletion(object):
     def __init__(self,
-                 dataset: GcmcDataset,
+                 graph_dataset: GcmcGraphDataset,
                  encoder_hidden_size: int,
                  encoder_size: int,
                  scope_name: str,
-                 test_size: float,
                  batch_size: int,
                  epoch_size: int,
                  dropout_rate: float,
@@ -228,10 +227,8 @@ class GraphConvolutionalMatrixCompletion(object):
                  ignore_item_embedding: bool = False,
                  save_directory_path: str = None) -> None:
         self.session = tf.Session()
-        self.dataset = dataset
         self.encoder_hidden_size = encoder_hidden_size
         self.encoder_size = encoder_size
-        self.test_size = test_size
         self.batch_size = batch_size
         self.epoch_size = epoch_size
         self.scope_name = scope_name
@@ -241,7 +238,7 @@ class GraphConvolutionalMatrixCompletion(object):
         self.weight_sharing = weight_sharing
         self.ignore_item_embedding = ignore_item_embedding
         self.save_directory_path = save_directory_path
-        self.graph_dataset = GcmcGraphDataset(self.dataset, self.test_size, min_user_click_count=5)
+        self.graph_dataset = graph_dataset
         self.graph = None
 
     def fit(self, try_count=1, decay_speed=10.) -> List[str]:
@@ -275,8 +272,8 @@ class GraphConvolutionalMatrixCompletion(object):
                                                     early_stopping.learning_rate)
                         _, train_loss, train_rmse = self.session.run([self.graph.op, self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
                         report.append(f'train: epoch={i + 1}/{self.epoch_size}, loss={train_loss}, rmse={train_rmse}.')
-                    except tf.errors.OutOfRangeError:
                         logger.info(report[-1])
+                    except tf.errors.OutOfRangeError:
                         feed_dict = self._feed_dict(test_data, self.graph, self.graph_dataset, rating_adjacency_matrix)
                         test_loss, test_rmse = self.session.run([self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
                         report.append(f'test: epoch={i + 1}/{self.epoch_size}, loss={test_loss}, rmse={test_rmse}.')
