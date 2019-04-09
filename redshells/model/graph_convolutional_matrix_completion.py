@@ -1,4 +1,5 @@
 import itertools
+from datetime import datetime
 from logging import getLogger
 from typing import List, Optional
 
@@ -273,6 +274,7 @@ class GraphConvolutionalMatrixCompletion(object):
                         _, train_loss, train_rmse = self.session.run([self.graph.op, self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
                         report.append(f'train: epoch={i + 1}/{self.epoch_size}, loss={train_loss}, rmse={train_rmse}.')
                         logger.info(report[-1])
+                        print(datetime.now())
                     except tf.errors.OutOfRangeError:
                         feed_dict = self._feed_dict(test_data, self.graph, self.graph_dataset, rating_adjacency_matrix)
                         test_loss, test_rmse = self.session.run([self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
@@ -379,3 +381,42 @@ class GraphConvolutionalMatrixCompletion(object):
         model = redshells.model.utils.load_tf_session(GraphConvolutionalMatrixCompletion, session, file_path,
                                                       GraphConvolutionalMatrixCompletion._make_graph)  # type: GraphConvolutionalMatrixCompletion
         return model
+
+
+def _make_sparse_matrix(n, m, n_values):
+    x = np.zeros(shape=(n, m), dtype=np.float32)
+    x[np.random.choice(range(n), n_values), np.random.choice(range(m), n_values)] = 1.0
+    return sp.csr_matrix(x)
+
+
+def main():
+    n_users = 100000
+    n_items = 1000
+    n_data = 10000000
+    n_features = 1000
+    adjacency_matrix = _make_sparse_matrix(n_users, n_items, n_data) + 2 * _make_sparse_matrix(n_users, n_items, n_data)
+    user_ids = adjacency_matrix.tocoo().row
+    item_ids = adjacency_matrix.tocoo().col
+    ratings = adjacency_matrix.tocoo().data
+    item_features = [dict(zip(range(n_items), np.random.uniform(size=(n_items, n_features)))) for i in range(4)]
+    encoder_hidden_size = 100
+    encoder_size = 100
+    scope_name = 'GraphConvolutionalMatrixCompletionGraph'
+    dataset = GcmcDataset(user_ids, item_ids, ratings, item_features=item_features)
+    graph_dataset = GcmcGraphDataset(dataset=dataset, test_size=0.1)
+    model = GraphConvolutionalMatrixCompletion(
+        graph_dataset=graph_dataset,
+        encoder_hidden_size=encoder_hidden_size,
+        encoder_size=encoder_size,
+        scope_name=scope_name,
+        batch_size=2**16,
+        epoch_size=10,
+        learning_rate=0.01,
+        dropout_rate=0.7,
+        normalization_type='symmetric')
+    for report in model.fit():
+        print(report)
+
+
+if __name__ == '__main__':
+    main()
