@@ -66,6 +66,8 @@ class TrainGraphConvolutionalMatrixCompletion(gokart.TaskOnKart):
         dataset = GcmcDataset(user_ids=user_ids, item_ids=item_ids, ratings=ratings, user_features=user_features, item_features=item_features)
         graph_dataset = GcmcGraphDataset(
             dataset=dataset, test_size=self.test_size, min_user_click_count=self.min_user_click_count, max_user_click_count=self.max_user_click_count)
+        import IPython
+        IPython.embed()
         model = GraphConvolutionalMatrixCompletion(graph_dataset=graph_dataset, **self.model_kwargs)
         self.task_log['report'] = [str(self.model_kwargs)] + model.fit(try_count=self.try_count, decay_speed=self.decay_speed)
         self.dump(self.task_log['report'], 'report')
