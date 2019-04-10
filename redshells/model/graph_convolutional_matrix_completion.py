@@ -273,9 +273,8 @@ class GraphConvolutionalMatrixCompletion(object):
                                                     early_stopping.learning_rate)
                         _, train_loss, train_rmse = self.session.run([self.graph.op, self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
                         report.append(f'train: epoch={i + 1}/{self.epoch_size}, loss={train_loss}, rmse={train_rmse}.')
-                        logger.info(report[-1])
-                        print(datetime.now())
                     except tf.errors.OutOfRangeError:
+                        logger.info(report[-1])
                         feed_dict = self._feed_dict(test_data, self.graph, self.graph_dataset, rating_adjacency_matrix)
                         test_loss, test_rmse = self.session.run([self.graph.loss, self.graph.rmse], feed_dict=feed_dict)
                         report.append(f'test: epoch={i + 1}/{self.epoch_size}, loss={test_loss}, rmse={test_rmse}.')
@@ -367,9 +366,11 @@ class GraphConvolutionalMatrixCompletion(object):
             ignore_item_embedding=self.ignore_item_embedding)
 
     @staticmethod
-    def _eliminate(matrix: sp.lil_matrix, user_indices, item_indices):
+    def _eliminate(matrix: sp.csr_matrix, user_indices, item_indices):
         matrix = matrix.copy()
+        # `lil_matrix` is too slow
         matrix[user_indices, item_indices] = 0
+        matrix.eliminate_zeros()
         return matrix
 
     def save(self, file_path: str) -> None:

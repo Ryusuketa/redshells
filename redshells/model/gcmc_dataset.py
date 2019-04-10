@@ -136,16 +136,17 @@ class GcmcGraphDataset(object):
         self._rating = GcmcIdMap(dataset.ratings, use_default=False)
         self._train_indices = np.random.uniform(0., 1., size=len(self._user.ids)) > test_size
 
-    def _train_adjacency_matrix(self):
-        m = sp.lil_matrix((self._user.index_count, self._item.index_count), dtype=np.float32)
+    def _train_adjacency_matrix(self) -> sp.csr_matrix:
+        m = sp.csr_matrix((self._user.index_count, self._item.index_count), dtype=np.float32)
         idx = self._train_indices
         # add 1 to rating_indices, because rating_indices starts with 0 and 0 is ignored in scr_matrix
+        # `lil_matrix` is too slow
         m[self._user.indices[idx], self._item.indices[idx]] = self._rating.indices[idx] + 1.
         return m
 
-    def train_rating_adjacency_matrix(self) -> List[sp.lil_matrix]:
+    def train_rating_adjacency_matrix(self) -> List[sp.csr_matrix]:
         adjacency_matrix = self._train_adjacency_matrix()
-        return [sp.lil_matrix(adjacency_matrix == r + 1., dtype=np.float32) for r in range(self._rating.index_count)]
+        return [sp.csr_matrix(adjacency_matrix == r + 1., dtype=np.float32) for r in range(self._rating.index_count)]
 
     def add_dataset(self, additional_dataset: GcmcDataset) -> 'GcmcGraphDataset':
         dataset = deepcopy(self)
